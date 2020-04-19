@@ -18,6 +18,7 @@
 [[release-notes-0.5.0]]
 == Pre-release 0.5.0
 
+:issue-47: https://github.com/khmarbaise/maven-it-extension/issues/47[Fixed #47]
 :issue-48: https://github.com/khmarbaise/maven-it-extension/issues/48[Fixed #48]
 :issue-49: https://github.com/khmarbaise/maven-it-extension/issues/49[Fixed #49]
 :issue-50: https://github.com/khmarbaise/maven-it-extension/issues/50[Fixed #50]
@@ -70,6 +71,7 @@
  * {issue-55} - Upgrade log4j from 2.13.1 to 2.13.2
  * {issue-56} - Upgrade mockito from 3.3.0 to 3.3.3
  * {issue-57} - Upgrade smpp-parent from 5.0.3 to 5.1.0
+ * {issue-47} - Upgrade to JUnit Jupiter 5.7.0
 
 *Build Improvements*
 
