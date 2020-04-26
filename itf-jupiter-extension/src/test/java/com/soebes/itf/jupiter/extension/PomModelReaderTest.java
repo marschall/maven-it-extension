@@ -30,9 +30,9 @@ import java.io.InputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ModelReaderTest {
+class PomModelReaderTest {
 
-  private ModelReader modelReader;
+  private PomModelReader pomModelReader;
 
   @Nested
   @DisplayName("A pom file which contains artifactId and version")
@@ -42,25 +42,25 @@ class ModelReaderTest {
     void beforeEach() throws IOException, XmlPullParserException {
       InputStream resourceAsStream = this.getClass().getResourceAsStream("/pom.xml");
       PomReader pomReader = new PomReader(resourceAsStream);
-      modelReader = new ModelReader(pomReader.getModel());
+      pomModelReader = new PomModelReader(pomReader.getModel());
     }
 
     @Test
     @DisplayName("should get the correct version.")
     void get_version_should_result_in_correct_version() {
-      assertThat(modelReader.getVersion()).isEqualTo("2.8-SNAPSHOT");
+      assertThat(pomModelReader.getVersion()).isEqualTo("2.8-SNAPSHOT");
     }
 
     @Test
     @DisplayName("should get the correct artifactId.")
     void get_artifactId_should_result_in_correct_artifactId() {
-      assertThat(modelReader.getArtifactId()).isEqualTo("versions-maven-plugin");
+      assertThat(pomModelReader.getArtifactId()).isEqualTo("versions-maven-plugin");
     }
 
     @Test
     @DisplayName("should get the groupId from parent.")
     void get_groupId_should_return_groupId() {
-      assertThat(modelReader.getGroupId()).isEqualTo("org.codehaus.mojo");
+      assertThat(pomModelReader.getGroupId()).isEqualTo("org.codehaus.mojo");
     }
 
   }
@@ -73,25 +73,25 @@ class ModelReaderTest {
     void beforeEach() throws IOException, XmlPullParserException {
       InputStream resourceAsStream = this.getClass().getResourceAsStream("/pom-correct.xml");
       PomReader pomReader = new PomReader(resourceAsStream);
-      modelReader = new ModelReader(pomReader.getModel());
+      pomModelReader = new PomModelReader(pomReader.getModel());
     }
 
     @Test
     @DisplayName("should get the correct version.")
     void get_version_should_result_in_correct_version() {
-      assertThat(modelReader.getVersion()).isEqualTo("2.8-SNAPSHOT");
+      assertThat(pomModelReader.getVersion()).isEqualTo("2.8-SNAPSHOT");
     }
 
     @Test
     @DisplayName("should get the correct artifactId.")
     void get_artifactId_should_result_in_correct_artifactId() {
-      assertThat(modelReader.getArtifactId()).isEqualTo("versions-maven-plugin");
+      assertThat(pomModelReader.getArtifactId()).isEqualTo("versions-maven-plugin");
     }
 
     @Test
     @DisplayName("should get the groupId")
     void get_groupId_should_return_groupId() {
-      assertThat(modelReader.getGroupId()).isEqualTo("org.codehaus.dela");
+      assertThat(pomModelReader.getGroupId()).isEqualTo("org.codehaus.dela");
     }
 
   }
@@ -104,25 +104,25 @@ class ModelReaderTest {
     void beforeEach() throws IOException, XmlPullParserException {
       InputStream resourceAsStream = this.getClass().getResourceAsStream("/pom-version.xml");
       PomReader pomReader = new PomReader(resourceAsStream);
-      modelReader = new ModelReader(pomReader.getModel());
+      pomModelReader = new PomModelReader(pomReader.getModel());
     }
 
     @Test
     @DisplayName("should get the version of the parent.")
     void get_version_should_result_in_correct_version() {
-      assertThat(modelReader.getVersion()).isEqualTo("50");
+      assertThat(pomModelReader.getVersion()).isEqualTo("50");
     }
 
     @Test
     @DisplayName("should get the correct artifactId.")
     void get_artifactId_should_result_in_correct_artifactId() {
-      assertThat(modelReader.getArtifactId()).isEqualTo("versions-maven-plugin");
+      assertThat(pomModelReader.getArtifactId()).isEqualTo("versions-maven-plugin");
     }
 
     @Test
     @DisplayName("should get the groupId from parent.")
     void get_groupId_should_return_groupId() {
-      assertThat(modelReader.getGroupId()).isEqualTo("org.codehaus.dela");
+      assertThat(pomModelReader.getGroupId()).isEqualTo("org.codehaus.dela");
     }
 
   }

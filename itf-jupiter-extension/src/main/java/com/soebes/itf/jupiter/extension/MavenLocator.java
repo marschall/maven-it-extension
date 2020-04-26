@@ -74,7 +74,6 @@ class MavenLocator {
   }
   private Optional<String> mavenHomeFromSystemProperty() {
     if (System.getProperties().containsKey(MAVEN_HOME)) {
-      //TODO: Need to reconsider in cases where defined {@code maven.home} with empty value?
       return Optional.of(System.getProperty(MAVEN_HOME));
     } else {
       return Optional.empty();

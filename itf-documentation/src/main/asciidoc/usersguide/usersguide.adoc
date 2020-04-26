@@ -749,6 +749,7 @@ In your test code the setup looks like the following. The important part is the 
 of the `@MavenPredefinedRepository` which indicated that the predefined repository in the appropriate
 location needs to exist. This means that those dependencies from this directory are available for
 each test case (`project_001` and `proeject_002`) in this test class.
+Technically those parts will be copied before executing the test into the local cache directory.
 
 [source,java]
 .ProjectIT.java

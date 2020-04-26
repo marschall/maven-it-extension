@@ -25,14 +25,21 @@ import com.soebes.itf.jupiter.maven.MavenExecutionResult.ExecutionResult;
 import com.soebes.itf.jupiter.maven.MavenLog;
 import com.soebes.itf.jupiter.maven.MavenProjectResult;
 import com.soebes.itf.jupiter.maven.ProjectHelper;
+import com.soebes.itf.jupiter.mrm.FileSystemServer;
+import com.soebes.itf.jupiter.mrm.MRMServer;
+import com.soebes.itf.jupiter.mrm.RepoContainer;
+import me.alexpanov.net.FreePortFinder;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Model;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionConfigurationException;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ExtensionContext.Store;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
@@ -43,6 +50,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -60,14 +72,91 @@ import static com.soebes.itf.jupiter.extension.AnnotationHelper.getCommandLineSy
 import static com.soebes.itf.jupiter.extension.AnnotationHelper.getGoals;
 import static com.soebes.itf.jupiter.extension.AnnotationHelper.hasActiveProfiles;
 import static com.soebes.itf.jupiter.extension.AnnotationHelper.isDebug;
+import static com.soebes.itf.jupiter.extension.StorageHelper.NAMESPACE_MAVEN_IT;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 /**
  * @author Karl Heinz Marbaise
  */
-public class MavenITExtension implements BeforeEachCallback, ParameterResolver, BeforeTestExecutionCallback,
+public class MavenITExtension implements BeforeAllCallback, BeforeEachCallback, AfterAllCallback, ParameterResolver, BeforeTestExecutionCallback,
     InvocationInterceptor {
+
+  private static final String MRM_SERVER = "MRM_SERVER";
+  private static final String GENERATED_SETTINGS = "GENERATED-SETTINGS";
+
+  @Override
+  public void beforeAll(ExtensionContext context) throws Exception {
+    Class<?> testClass = context.getTestClass()
+        .orElseThrow(() -> new ExtensionConfigurationException("MavenITExtension is only supported for classes."));
+
+    boolean mockRepositoryManagerAnnotation = testClass.isAnnotationPresent(MavenMockRepositoryManager.class);
+    if (mockRepositoryManagerAnnotation) {
+      //FIXME: Code duplication.
+      File mavenItsBaseDirectory = new File(DirectoryHelper.getTargetDir(), "test-classes");
+      Optional<Class<?>> optionalMavenMockRepositoryRepository = AnnotationHelper.findMavenMockRepositoryManager(context);
+
+      if (optionalMavenMockRepositoryRepository.isPresent()) {
+        MavenMockRepositoryManager mockRepositoryManager = optionalMavenMockRepositoryRepository.get().getAnnotation(MavenMockRepositoryManager.class);
+        String repositoryPath = DirectoryHelper.toFullyQualifiedPath(optionalMavenMockRepositoryRepository.get());
+        File cacheDirectoryBase = new File(mavenItsBaseDirectory, repositoryPath);
+        File mrmRepository = new File(cacheDirectoryBase, mockRepositoryManager.value());
+        if (!mrmRepository.isDirectory() && !mrmRepository.exists()) {
+          throw new IllegalStateException("The " + mrmRepository.getAbsolutePath() + " is either no directory or does not exist.");
+        }
+        int freeLocalPort = FreePortFinder.findFreeLocalPort();
+
+        //From the failsafe-plugin configuration:
+        String localRepository = System.getProperty("localRepository");
+        if (localRepository == null || localRepository.isEmpty()) {
+//          throw new IllegalStateException("can read system property 'localRepository'");
+          //FIXME: Hard CODED TESTING
+          localRepository = "/Users/khmarbaise/.m2/repository";
+        }
+
+        File localM2repo = new File(localRepository);
+        RepoContainer repoContainer = new RepoContainer()
+            .add(localM2repo)
+            .add(mrmRepository);
+
+        MRMServer mrm = new MRMServer(repoContainer, freeLocalPort);
+
+        FileSystemServer fileSystemServer = mrm.create();
+
+        Store store = context.getStore(NAMESPACE_MAVEN_IT);
+        store.put(MRM_SERVER + context.getUniqueId(), mrm);
+
+        //Check if we are the correct location.
+        CreateSettingsFromTemplate createSettingsFromTemplate = new CreateSettingsFromTemplate(URI.create(fileSystemServer.getUrl()));
+        List<String> settingsLines = createSettingsFromTemplate.create();
+
+        Path pathSettingsXml = Paths.get(cacheDirectoryBase.getAbsolutePath(), "generated-settings.xml");
+        try {
+          Files.write(pathSettingsXml, settingsLines,
+              StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+        store.put(GENERATED_SETTINGS + context.getUniqueId(), pathSettingsXml.toFile());
+
+        mrm.start();
+      }
+
+    }
+  }
+
+  @Override
+  public void afterAll(ExtensionContext context) throws Exception {
+    Class<?> testClass = context.getTestClass()
+        .orElseThrow(() -> new ExtensionConfigurationException("MavenITExtension is only supported for classes."));
+    if (testClass.isAnnotationPresent(MavenMockRepositoryManager.class)) {
+      Store store = context.getStore(NAMESPACE_MAVEN_IT);
+      MRMServer mrmServer = store.get(MRM_SERVER + context.getUniqueId(), MRMServer.class);
+
+      mrmServer.shutdown();
+    }
+  }
+
 
   @Override
   public void beforeEach(ExtensionContext context) {
@@ -207,12 +296,12 @@ public class MavenITExtension implements BeforeEachCallback, ParameterResolver, 
     File mavenBaseDirectory = new File(directoryResolverResult.getTargetDirectory(), "..");
     File pomFile = new File(mavenBaseDirectory, "pom.xml");
     PomReader pomReader = new PomReader(new FileInputStream(pomFile));
-    ModelReader modelReader = new ModelReader(pomReader.getModel());
+    PomModelReader pomModelReader = new PomModelReader(pomReader.getModel());
     Map<String, String> keyValues = new HashMap<>();
     //The following three elements we are reading from the original pom file.
-    keyValues.put("project.groupId", modelReader.getGroupId());
-    keyValues.put("project.artifactId", modelReader.getArtifactId());
-    keyValues.put("project.version", modelReader.getVersion());
+    keyValues.put("project.groupId", pomModelReader.getGroupId());
+    keyValues.put("project.artifactId", pomModelReader.getArtifactId());
+    keyValues.put("project.version", pomModelReader.getVersion());
 
     List<String> resultingGoals = Stream.of(GoalPriority.goals(mavenJupiterExtensionAnnotation.goals(), getGoals(methodName))).collect(toList());
     PropertiesFilter propertiesFilter = new PropertiesFilter(keyValues, resultingGoals);

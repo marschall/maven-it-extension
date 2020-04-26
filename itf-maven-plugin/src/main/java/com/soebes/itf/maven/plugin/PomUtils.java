@@ -47,10 +47,8 @@ class PomUtils {
       throws MojoExecutionException {
     try (Reader reader = ReaderFactory.newXmlReader(pomFile)) {
       return new MavenXpp3Reader().read(reader, false);
-    } catch (XmlPullParserException e) {
+    } catch (XmlPullParserException | IOException e) {
       throw new MojoExecutionException("Failed to parse POM: " + pomFile, e);
-    } catch (IOException e) {
-      throw new MojoExecutionException("Failed to read POM: " + pomFile, e);
     }
   }
 
