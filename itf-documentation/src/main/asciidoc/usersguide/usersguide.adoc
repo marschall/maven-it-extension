@@ -605,7 +605,7 @@ After test execution the resulting directory tree looks like this:
 
 In all previous test case examples the maven cache (aka maven repository)
 is created separately for each of the test cases (*test methods*). There are times
-where you need to have a common cache (aka maven repository) for two or more test
+when you need to have a common cache (aka maven repository) for two or more test
 cases together. This can be achieved easily via the `@MavenRepository`
 annotation.footnote:[Base on the usage of this annotation the parallelizing is automatically deactivated
 cause Maven has never been designed to make a parallel access to the maven cache possible.]
