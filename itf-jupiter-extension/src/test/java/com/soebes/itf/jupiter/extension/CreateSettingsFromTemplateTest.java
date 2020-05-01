@@ -20,20 +20,34 @@ package com.soebes.itf.jupiter.extension;
  */
 
 import org.junit.jupiter.api.Test;
+import org.xmlunit.builder.DiffBuilder;
+import org.xmlunit.builder.Input;
+import org.xmlunit.diff.Diff;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
+import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * @author Karl Heinz Marbaise
+ */
 class CreateSettingsFromTemplateTest {
 
   @Test
   void name() throws IOException {
     URI uri = URI.create("http://test.repo:1234");
     CreateSettingsFromTemplate createSettingsFromTemplate = new CreateSettingsFromTemplate(uri);
-    List<String> settings = createSettingsFromTemplate.create();
-    settings.stream().forEach(line -> System.out.println(line));
-  }
+    String createdSettings = createSettingsFromTemplate.create()
+        .stream()
+        .collect(Collectors.joining(System.lineSeparator()));
 
+    Diff build = DiffBuilder.compare(Input.fromString(createdSettings))
+        .withTest(Input.fromStream(this.getClass().getResourceAsStream("/expected-settings.xml")))
+        .build();
+
+    assertThat(build.hasDifferences()).as("The differences are %s", build.getDifferences()).isFalse();
+  }
 
 }
