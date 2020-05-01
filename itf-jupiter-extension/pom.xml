@@ -39,7 +39,7 @@
     </dependency>
     <dependency>
       <groupId>com.soebes.itf.jupiter.extension</groupId>
-      <artifactId>maven-mrm</artifactId>
+      <artifactId>itf-mrm</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

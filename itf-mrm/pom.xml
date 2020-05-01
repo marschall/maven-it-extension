@@ -29,7 +29,8 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>maven-mrm</artifactId>
+  <artifactId>itf-mrm</artifactId>
+  <description>Mock Repository Manager</description>
 
   <dependencies>
     <dependency>

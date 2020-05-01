@@ -23,6 +23,9 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * @author Karl Heinz Marbaise
+ */
 public class RepoContainer {
 
   private final List<File> repositories;

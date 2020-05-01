@@ -22,8 +22,8 @@
 <settings>
   <mirrors>
     <mirror>
-      <id>mrm-repo</id>
-      <name>Mock Repository Manager</name>
+      <id>itf-mrm-repo</id>
+      <name>ITF Mock Repository Manager</name>
       <url>${mirror.url}</url>
       <mirrorOf>*</mirrorOf>
     </mirror>

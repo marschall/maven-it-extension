@@ -30,17 +30,6 @@ class MRMServerTest {
 
   @Test
   void first() throws Exception {
-    File mrmRepository = new File(
-        "/Users/khmarbaise/ws-git-codehaus/versions-versions-plugin/src/test/resources-its/org/codehaus/mojo/versions/it/CompareDependenciesIT/.mrm");
-    File localM2 = new File("/Users/khmarbaise/.m2/repository");
-
-    RepoContainer repoContainer = new RepoContainer()
-        .add(localM2)
-        .add(mrmRepository);
-
-    MRMServer mrm = new MRMServer(repoContainer, 20080);
-
-    mrm.create();
 
 //    mrm.start();
 //    URI uri = mrm.getURI();
