@@ -44,13 +44,11 @@ class PomUtils {
    * @throws MojoExecutionException If the POM file could not be loaded.
    */
   public static Model loadPom(File pomFile)
-      throws MojoExecutionException {
+      throws MojoExecutionException, IOException {
     try (Reader reader = ReaderFactory.newXmlReader(pomFile)) {
       return new MavenXpp3Reader().read(reader, false);
     } catch (XmlPullParserException e) {
       throw new MojoExecutionException("Failed to parse POM: " + pomFile, e);
-    } catch (IOException e) {
-      throw new MojoExecutionException("Failed to read POM: " + pomFile, e);
     }
   }
 
