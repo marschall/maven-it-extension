@@ -52,7 +52,7 @@ class MavenLocatorTest {
     Path mvnBaseDirectory = fileSystem.getPath(pathToCreate);
     Files.createDirectories(mvnBaseDirectory);
 
-    Path mvnBatBinary = fileSystem.getPath(pathToCreate, fileToCreate);
+    Path mvnBatBinary = mvnBaseDirectory.resolve(fileToCreate);
     Files.createFile(mvnBatBinary);
   }
 
